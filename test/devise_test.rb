@@ -1,16 +1,10 @@
 require 'test_helper'
 
-module Devise
-  def self.yield_and_restore
-    @@warden_configured = nil
-    c, b = @@warden_config, @@warden_config_block
-    yield
-  ensure
-    @@warden_config, @@warden_config_block = c, b
-  end
-end
-
 class DeviseTest < ActiveSupport::TestCase
+
+  class MyMailer < ::Devise::Mailer
+  end
+
   test 'model options can be configured through Devise' do
     swap Devise, :confirm_within => 113, :pepper => "foo" do
       assert_equal 113, Devise.confirm_within
@@ -59,7 +53,7 @@ class DeviseTest < ActiveSupport::TestCase
     Devise::ALL.delete(:kivi)
     Devise::CONTROLLERS.delete(:kivi)
   end
-  
+
   test 'should complain when comparing empty or different sized passes' do
     [nil, ""].each do |empty|
       assert_not Devise.secure_compare(empty, "something")
@@ -68,5 +62,37 @@ class DeviseTest < ActiveSupport::TestCase
     end
     assert_not Devise.secure_compare("size_1", "size_four")
   end
-  
+
+  test 'has a default mailer' do
+    assert_equal Devise::Mailer, Devise.mailer_for(:default)
+    assert_equal Devise::Mailer, Devise.mailer_for(nil)
+  end
+
+  test 'returns the default mailer even if there is no custom mailer for this scope' do
+    assert_equal Devise::Mailer, Devise.mailer_for(:foo)
+  end
+
+  test 'overides the default mailer' do
+    Devise.yield_and_restore do
+      Devise.mailer = { :default => "DeviseTest::MyMailer" }
+      assert_equal DeviseTest::MyMailer, Devise.mailer_for(:default)
+      assert_equal DeviseTest::MyMailer, Devise.mailer_for(:foo)
+    end
+  end
+
+  test 'returns the custom mailer assigned to a scope' do
+    Devise.yield_and_restore do
+      Devise.mailer = { :bar => "DeviseTest::MyMailer" }
+      assert_equal MyMailer, Devise.mailer_for(:bar)
+      assert_equal Devise::Mailer, Devise.mailer_for(:foo)
+    end
+  end
+
+  test 'allows to use the old way to set the mailer' do
+    Devise.yield_and_restore do
+      Devise.mailer = "DeviseTest::MyMailer"
+      assert_equal DeviseTest::MyMailer, Devise.mailer_for(:default)
+    end
+  end
+
 end

@@ -82,7 +82,7 @@ module Devise
   # False by default for backwards compatibility.
   mattr_accessor :case_insensitive_keys
   @@case_insensitive_keys = false
-  
+
   # Keys that should have whitespace stripped.
   # False by default for backwards compatibility.
   mattr_accessor :strip_whitespace_keys
@@ -273,16 +273,32 @@ module Devise
     omniauth_configs.keys
   end
 
-  # Get the mailer class from the mailer reference object.
-  def self.mailer
-    @@mailer_ref.get
+  class MailerHash < ::Hash
+    def []=(scope, class_name)
+      super(scope, Devise.ref(class_name))
+    end
   end
 
-  # Set the mailer reference object to access the mailer.
-  def self.mailer=(class_name)
-    @@mailer_ref = ref(class_name)
+  # Get the mailer class from a scope
+  def self.mailer_for(scope)
+    (@@mailers_hash[scope] || @@mailers_hash[:default]).get
   end
-  self.mailer = "Devise::Mailer"
+
+  # Get the mailers hash
+  def self.mailer
+    @@mailers_hash
+  end
+
+  # Set the mailers hash (scope as keys and mailers classes as values)
+  def self.mailer=(hash)
+    @@mailers_hash ||= MailerHash.new
+
+    hash = { :default => hash } unless hash.kind_of?(Hash) # compatibility with the previous way of setting the mailer
+
+    hash.each { |scope, class_name| hash[scope] = ref(class_name) }
+    @@mailers_hash.merge!(hash)
+  end
+  self.mailer = { :default => "Devise::Mailer" }
 
   # Small method that adds a mapping to Devise.
   def self.add_mapping(resource, options)

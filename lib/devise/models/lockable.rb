@@ -23,12 +23,12 @@ module Devise
       delegate :lock_strategy_enabled?, :unlock_strategy_enabled?, :to => "self.class"
 
       # Lock a user setting its locked_at to actual time.
-      def lock_access!
+      def lock_access!(scope = :default)
         self.locked_at = Time.now
 
         if unlock_strategy_enabled?(:email)
           generate_unlock_token
-          send_unlock_instructions
+          send_unlock_instructions(scope)
         end
 
         save(:validate => false)
@@ -48,13 +48,13 @@ module Devise
       end
 
       # Send unlock instructions by email
-      def send_unlock_instructions
-        ::Devise.mailer.unlock_instructions(self).deliver
+      def send_unlock_instructions(scope = :default)
+        ::Devise.mailer_for(scope).unlock_instructions(self).deliver
       end
 
       # Resend the unlock instructions if the user is locked.
-      def resend_unlock_token
-        if_access_locked { send_unlock_instructions }
+      def resend_unlock_token(scope = :default)
+        if_access_locked { send_unlock_instructions(scope) }
       end
 
       # Overwrites active_for_authentication? from Devise::Models::Activatable for locking purposes
@@ -136,9 +136,9 @@ module Devise
         # unlock instructions to it. If not user is found, returns a new user
         # with an email not found error.
         # Options must contain the user email
-        def send_unlock_instructions(attributes={})
+        def send_unlock_instructions(attributes={}, scope = :default)
          lockable = find_or_initialize_with_errors(unlock_keys, attributes, :not_found)
-         lockable.resend_unlock_token if lockable.persisted?
+         lockable.resend_unlock_token(scope) if lockable.persisted?
          lockable
         end
 

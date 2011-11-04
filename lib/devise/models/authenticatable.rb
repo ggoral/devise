@@ -50,6 +50,7 @@ module Devise
       include Devise::Models::Serializable
 
       included do
+        attr_accessor :current_devise_scope
         class_attribute :devise_modules, :instance_writer => false
         self.devise_modules ||= []
       end
@@ -156,7 +157,7 @@ module Devise
             conditions[k] = v.to_s if auth_param_requires_string_conversion?(v)
           end if conditions.is_a?(Hash)
         end
-        
+
         # Determine which values should be transformed to string or passed as-is to the query builder underneath
         def auth_param_requires_string_conversion?(value)
           true unless value.is_a?(TrueClass) || value.is_a?(FalseClass) || value.is_a?(Fixnum)

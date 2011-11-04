@@ -57,4 +57,5 @@ class ActiveSupport::TestCase
       object.send :"#{key}=", value
     end
   end
+
 end

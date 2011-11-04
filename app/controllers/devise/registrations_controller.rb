@@ -74,7 +74,9 @@ class Devise::RegistrationsController < ApplicationController
     # temporary session data to the newly created user.
     def build_resource(hash=nil)
       hash ||= params[resource_name] || {}
-      self.resource = resource_class.new_with_session(hash, session)
+      self.resource = resource_class.new_with_session(hash, session).tap do |resource|
+        resource.current_devise_scope = resource_name
+      end
     end
 
     # The path used after sign up. You need to overwrite this method

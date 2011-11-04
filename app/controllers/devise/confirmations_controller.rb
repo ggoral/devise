@@ -9,7 +9,7 @@ class Devise::ConfirmationsController < ApplicationController
 
   # POST /resource/confirmation
   def create
-    self.resource = resource_class.send_confirmation_instructions(params[resource_name])
+    self.resource = resource_class.send_confirmation_instructions(params[resource_name], resource_name)
 
     if successfully_sent?(resource)
       respond_with({}, :location => after_resending_confirmation_instructions_path_for(resource_name))

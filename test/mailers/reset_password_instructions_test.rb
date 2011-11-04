@@ -4,8 +4,13 @@ class ResetPasswordInstructionsTest < ActionMailer::TestCase
 
   def setup
     setup_mailer
-    Devise.mailer = 'Devise::Mailer'
+    Devise.mailer[:default] = 'Devise::Mailer'
     Devise.mailer_sender = 'test@example.com'
+  end
+
+  def teardown
+    Devise.mailer[:default] = 'Devise::Mailer'
+    Devise.mailer_sender = 'please-change-me@config-initializers-devise.com'
   end
 
   def user
@@ -40,7 +45,7 @@ class ResetPasswordInstructionsTest < ActionMailer::TestCase
   end
 
   test 'setup sender from custom mailer defaults' do
-    Devise.mailer = 'Users::Mailer'
+    Devise.mailer[:default] = 'Users::Mailer'
     assert_equal ['custom@example.com'], mail.from
   end
 

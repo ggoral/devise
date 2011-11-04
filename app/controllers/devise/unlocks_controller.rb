@@ -10,7 +10,7 @@ class Devise::UnlocksController < ApplicationController
 
   # POST /resource/unlock
   def create
-    self.resource = resource_class.send_unlock_instructions(params[resource_name])
+    self.resource = resource_class.send_unlock_instructions(params[resource_name], resource_name)
 
     if successfully_sent?(resource)
       respond_with({}, :location => new_session_path(resource_name))

@@ -45,14 +45,14 @@ module Devise
       end
 
       # Send confirmation instructions by email
-      def send_confirmation_instructions
+      def send_confirmation_instructions(scope = :default)
         generate_confirmation_token! if self.confirmation_token.nil?
-        ::Devise.mailer.confirmation_instructions(self).deliver
+        ::Devise.mailer_for(self.current_devise_scope || scope).confirmation_instructions(self).deliver
       end
 
       # Resend confirmation token. This method does not need to generate a new token.
-      def resend_confirmation_token
-        unless_confirmed { send_confirmation_instructions }
+      def resend_confirmation_token(scope = :default)
+        unless_confirmed { send_confirmation_instructions(scope) }
       end
 
       # Overwrites active_for_authentication? for confirmation
@@ -137,9 +137,9 @@ module Devise
         # confirmation instructions to it. If not user is found, returns a new user
         # with an email not found error.
         # Options must contain the user email
-        def send_confirmation_instructions(attributes={})
+        def send_confirmation_instructions(attributes={}, scope = :default)
           confirmable = find_or_initialize_with_errors(confirmation_keys, attributes, :not_found)
-          confirmable.resend_confirmation_token if confirmable.persisted?
+          confirmable.resend_confirmation_token(scope) if confirmable.persisted?
           confirmable
         end
 

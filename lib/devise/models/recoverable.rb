@@ -38,9 +38,9 @@ module Devise
       end
 
       # Resets reset password token and send reset password instructions by email
-      def send_reset_password_instructions
+      def send_reset_password_instructions(scope = :default)
         generate_reset_password_token! if should_generate_token?
-        ::Devise.mailer.reset_password_instructions(self).deliver
+        ::Devise.mailer_for(scope).reset_password_instructions(self).deliver
       end
 
       # Checks if the reset password token sent is within the limit time.
@@ -64,7 +64,7 @@ module Devise
       #   reset_password_period_valid?   # will always return false
       #
       def reset_password_period_valid?
-        return true unless respond_to?(:reset_password_sent_at) 
+        return true unless respond_to?(:reset_password_sent_at)
         reset_password_sent_at && reset_password_sent_at.utc >= self.class.reset_password_within.ago
       end
 
@@ -101,9 +101,9 @@ module Devise
         # password instructions to it. If not user is found, returns a new user
         # with an email not found error.
         # Attributes must contain the user email
-        def send_reset_password_instructions(attributes={})
+        def send_reset_password_instructions(attributes={}, scope = :default)
           recoverable = find_or_initialize_with_errors(reset_password_keys, attributes, :not_found)
-          recoverable.send_reset_password_instructions if recoverable.persisted?
+          recoverable.send_reset_password_instructions(scope) if recoverable.persisted?
           recoverable
         end
 
@@ -121,7 +121,7 @@ module Devise
           recoverable = find_or_initialize_with_error_by(:reset_password_token, attributes[:reset_password_token])
           if recoverable.persisted?
             if recoverable.reset_password_period_valid?
-              recoverable.reset_password!(attributes[:password], attributes[:password_confirmation]) 
+              recoverable.reset_password!(attributes[:password], attributes[:password_confirmation])
             else
               recoverable.errors.add(:reset_password_token, :expired)
             end
