@@ -64,7 +64,7 @@ module Devise
       @path_names = Hash.new { |h,k| h[k] = k.to_s }
       @path_names.merge!(:registration => "")
       @path_names.merge!(options[:path_names] || {})
-      
+
       @constraints = Hash.new { |h,k| h[k] = k.to_s }
       @constraints.merge!(options[:constraints] || {})
 
@@ -73,6 +73,8 @@ module Devise
 
       @sign_out_via = options[:sign_out_via] || Devise.sign_out_via
       @format = options[:format]
+
+      @failure_app = Devise.ref(options[:failure_app]) if options[:failure_app]
 
       singularizer = lambda { |s| s.to_s.singularize.to_sym }
 
@@ -103,6 +105,10 @@ module Devise
       @ref.get
     end
 
+    def failure_app
+      @failure_app.try(:get)
+    end
+
     def strategies
       @strategies ||= STRATEGIES.values_at(*self.modules).compact.uniq.reverse
     end
@@ -122,15 +128,15 @@ module Devise
     def fullpath
       "/#{@path_prefix}/#{@path}".squeeze("/")
     end
-    
+
     def constraints
       @constraints
     end
-    
+
     def defaults
       @defaults
     end
-    
+
     # Create magic predicates for verifying what module is activated by this map.
     # Example:
     #

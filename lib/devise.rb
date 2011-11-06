@@ -82,7 +82,7 @@ module Devise
   # False by default for backwards compatibility.
   mattr_accessor :case_insensitive_keys
   @@case_insensitive_keys = false
-  
+
   # Keys that should have whitespace stripped.
   # False by default for backwards compatibility.
   mattr_accessor :strip_whitespace_keys
@@ -412,7 +412,7 @@ module Devise
       warden_config.intercept_401 = false
 
       Devise.mappings.each_value do |mapping|
-        warden_config.scope_defaults mapping.name, :strategies => mapping.strategies
+        warden_config.scope_defaults mapping.name, :strategies => mapping.strategies, :failure_app => mapping.failure_app
       end
 
       @@warden_config_block.try :call, Devise.warden_config
